@@ -1,0 +1,17 @@
+name: Generate Tree
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: sudo apt install tree
+      - run: tree -a -I "__pycache__|.venv|node_modules" > TREE.md
+      - uses: EndBug/add-and-commit@v9
+        with:
+          add: TREE.md
+          message: "Update tree file"
