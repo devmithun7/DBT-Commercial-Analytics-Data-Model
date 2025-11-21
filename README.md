@@ -1,6 +1,8 @@
 # DBT-Commercial-Analytics-Data-Model
 
-erDiagram
+
+```mermaid
+ER Diagram
 
     %% ============================
     %% DIMENSION TABLES
