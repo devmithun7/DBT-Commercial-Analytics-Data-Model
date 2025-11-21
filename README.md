@@ -2,7 +2,7 @@
 
 
 ```mermaid
-ER Diagram
+erDiagram
 
     %% ============================
     %% DIMENSION TABLES
