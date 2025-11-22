@@ -5,19 +5,34 @@
 erDiagram
 
     %% ============================
-    %% DIMENSION TABLES
+    %% NEW COMBINED DIMENSION TABLE
     %% ============================
 
-    dim_customer_identity {
-        varchar customer_id PK
+    dim_customer_profile {
+        int customer_profile_sk PK
+        varchar customer_id UK
         varchar first_name
         varchar last_name
         varchar email
         boolean is_valid_email
         varchar phone
+        
+        int age
+        varchar age_group
+        varchar gender
+        int loyalty_points
+        varchar loyalty_tier
+        boolean marketing_opt_in
+        boolean is_vip_member
+        varchar preferred_scare_level
+
         timestamp created_at
         timestamp updated_at
     }
+
+    %% ============================
+    %% OTHER DIMENSIONS
+    %% ============================
 
     dim_customer_location {
         int customer_location_sk PK
@@ -28,21 +43,6 @@ erDiagram
         varchar state_name
         varchar zip_code
         date registration_date
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    dim_customer_behavior {
-        int behavior_sk PK
-        varchar customer_id FK
-        int age
-        varchar age_group
-        varchar gender
-        int loyalty_points
-        varchar loyalty_tier
-        boolean marketing_opt_in
-        boolean is_vip_member
-        varchar preferred_scare_level
         timestamp created_at
         timestamp updated_at
     }
@@ -105,7 +105,7 @@ erDiagram
         varchar visit_time_category
         varchar business_season
         int customer_location_sk FK
-        int behavior_sk FK
+        int customer_profile_sk FK
         int segment_sk FK
     }
 
@@ -113,9 +113,8 @@ erDiagram
     %% RELATIONSHIPS
     %% ============================
 
-    dim_customer_identity ||--o{ fct_all_ticket_sales : "customer_id"
+    dim_customer_profile ||--o{ fct_all_ticket_sales : "customer_profile_sk"
     dim_customer_location ||--o{ fct_all_ticket_sales : "customer_location_sk"
-    dim_customer_behavior ||--o{ fct_all_ticket_sales : "behavior_sk"
     dim_customer_segments ||--o{ fct_all_ticket_sales : "segment_sk"
 
     dim_ticket_types ||--o{ fct_all_ticket_sales : "ticket_id"
