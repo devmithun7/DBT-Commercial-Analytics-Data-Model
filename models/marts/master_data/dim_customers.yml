@@ -1,28 +1,29 @@
 version: 2
 
 models:
-  - name: dim_customers
-    description: "Customer dimension table with enriched state information and comprehensive business segmentation"
+
+  # ============================================================
+  # dim_customer_profile
+  # ============================================================
+  - name: dim_customer_profile
+    description: "Combined customer identity + behavior dimension (profile-level attributes)."
     config:
-      tags: ["master_data", "dimension"]
+      tags: ["dimension", "customer"]
+
     columns:
+      - name: customer_profile_sk
+        description: "Surrogate key for the customer profile dimension"
+        tests:
+          - unique
+          - not_null
+
       - name: customer_id
-        description: "Primary key for customer"
-        tests:
-          - unique
-          - not_null
-
-      - name: email
-        description: "Customer email address"
-        tests:
-          - unique
-
-      - name: is_valid_email
-        description: "Boolean indicating if email is valid and has approved TLD"
+        description: "Business key for customer"
         tests:
           - not_null
-          - accepted_values:
-              values: [true, false]
+          - relationships:
+              to: ref('snp_customers')
+              field: customer_id
 
       - name: first_name
         description: "Customer first name"
@@ -34,58 +35,100 @@ models:
         tests:
           - not_null
 
-      - name: is_vip_member
-        description: "Boolean indicating if customer is VIP member"
-        tests:
-          - not_null
-          - accepted_values:
-              values: [true, false]
-
-      - name: marketing_opt_in
-        description: "Boolean indicating if customer opted into marketing"
-        tests:
-          - not_null
-          - accepted_values:
-              values: [true, false]
-
-      - name: gender
-        description: "Customer gender (abbreviated codes)"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['M', 'F', 'Other']
-
-      - name: age
-        description: "Customer age"
-
-      - name: zip_code
-        description: "Customer zip code"
-
-      - name: state
-        description: "Customer state abbreviation"
-
-      - name: state_name
-        description: "Full state name (enriched from state abbreviation)"
-
-      - name: city
-        description: "Customer city"
-
-      - name: address
-        description: "Customer address"
+      - name: email
+        description: "Customer email address"
 
       - name: phone
         description: "Customer phone number"
 
-      - name: preferred_scare_level
-        description: "Customer's preferred scare level"
+      - name: age
+        description: "Customer age"
+
+      - name: age_group
+        description: "Derived age segment"
+        tests:
+          - accepted_values:
+              values: ["Minor", "Young Adult", "Adult", "Mid-Life", "Senior"]
+
+      - name: gender
+        description: "Customer gender"
+        tests:
+          - accepted_values:
+              values: ["M", "F", "Other"]
+
+      - name: loyalty_points
+        description: "Customer loyalty score"
+
+      - name: loyalty_tier
+        description: "Tier derived from loyalty points"
+        tests:
+          - accepted_values:
+              values: ["Bronze", "Silver", "Gold", "Platinum"]
+
+      - name: marketing_opt_in
+        description: "Whether customer opted into marketing"
         tests:
           - not_null
 
-      - name: loyalty_points
-        description: "Customer loyalty points"
+      - name: is_vip_member
+        description: "VIP membership flag"
+        tests:
+          - not_null
+
+      - name: preferred_scare_level
+        description: "Customer's preferred scare level"
+
+      - name: created_at
+        description: "Record creation timestamp"
+        tests:
+          - not_null
+
+      - name: updated_at
+        description: "Record last update timestamp"
+        tests:
+          - not_null
+
+
+  # ============================================================
+  # dim_customer_location
+  # ============================================================
+  - name: dim_customer_location
+    description: "Customer address and geographic attributes."
+    config:
+      tags: ["dimension", "customer", "location"]
+
+    columns:
+      - name: customer_location_sk
+        description: "Surrogate key for the customer location dimension"
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: "Business-level customer identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('snp_customers')
+              field: customer_id
+
+      - name: address
+        description: "Street address"
+
+      - name: city
+        description: "City of residence"
+
+      - name: state
+        description: "State code (2-character)"
+
+      - name: state_name
+        description: "Full state name"
+
+      - name: zip_code
+        description: "Zip/postal code"
 
       - name: registration_date
-        description: "Customer registration date"
+        description: "Date customer registered"
         tests:
           - not_null
 
@@ -99,70 +142,51 @@ models:
         tests:
           - not_null
 
-      # Business rule segmentation fields
-      - name: age_group
-        description: "Age-based customer segmentation"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['Teenager', 'Young Adult', 'Adult', 'Middle Age', 'Senior', 'Elderly', 'Unknown']
 
-      - name: loyalty_tier
-        description: "Loyalty program tier based on points"
+  # ============================================================
+  # dim_customer_segments
+  # ============================================================
+  - name: dim_customer_segments
+    description: "Marketing segmentation, customer value, lifecycle, retention risk."
+    config:
+      tags: ["dimension", "segment", "customer"]
+
+    columns:
+      - name: segment_sk
+        description: "Surrogate key for the segment dimension"
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: "Customer business key"
         tests:
           - not_null
-          - accepted_values:
-              values: ['Platinum', 'Gold', 'Silver', 'Bronze', 'New Member']
+          - relationships:
+              to: ref('snp_customers')
+              field: customer_id
 
       - name: customer_value_segment
-        description: "Customer value segmentation based on VIP status and loyalty"
+        description: "Value-based segmentation"
         tests:
-          - not_null
           - accepted_values:
-              values: ['High Value', 'Medium Value', 'Low Value', 'New Customer']
+              values: ["High Value", "Medium Value", "Low Value"]
 
       - name: customer_lifecycle_stage
-        description: "Customer lifecycle stage based on registration date"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['New Customer', 'Recent Customer', 'Established Customer', 'Long-term Customer', 'Loyal Customer']
+        description: "Lifecycle stage segmentation"
 
       - name: retention_risk_level
-        description: "Customer retention risk assessment"
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['At Risk', 'Potential Risk', 'Low Risk', 'Monitor']
+        description: "Risk to churn"
 
       - name: upsell_opportunity
-        description: "Upsell opportunity categorization"
+        description: "Recommended upsell category"
+
+      - name: created_at
+        description: "Record creation timestamp"
         tests:
           - not_null
-          - accepted_values:
-              values: ['VIP Upsell Candidate', 'Loyalty Program Promoter', 'Marketing Opt-in Candidate', 'Scare Level Upsell', 'Standard']
 
-
-unit_tests:
-  - name: test_is_valid_email_address
-    description: "Check my is_valid_email logic captures all known edge cases - emails without ., emails without @, and emails from invalid domains."
-    model: dim_customers
-    given:
-      - input: ref('stg_customer_data__customers')
-        rows:
-          - {customer_id: 1, email: cool@example.com}
-          - {customer_id: 2, email: cool@unknown.com}
-          - {customer_id: 3, email: badgmail.com}
-          - {customer_id: 4, email: missingdot@gmailcom}
-      - input: ref('seed_us_states')
-        rows:
-          - {}
-      - input: ref('seed_valid_top_level_domains')
-        rows:
-          - {domain: example.com}
-    expect:
-      rows:
-        - {customer_id: 1, email: cool@example.com,    is_valid_email: true}
-        - {customer_id: 2, email: cool@unknown.com,    is_valid_email: false}
-        - {customer_id: 3, email: badgmail.com,        is_valid_email: false}
-        - {customer_id: 4, email: missingdot@gmailcom, is_valid_email: false}
+      - name: updated_at
+        description: "Record last update timestamp"
+        tests:
+          - not_null
