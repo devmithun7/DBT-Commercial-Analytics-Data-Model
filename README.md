@@ -1,5 +1,4 @@
 
-@"
 # 🎢 DBT Commercial Analytics Data Model
 
 [![dbt](https://img.shields.io/badge/dbt-1.0%2B-orange)](https://www.getdbt.com/)
